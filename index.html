@@ -283,6 +283,12 @@
   .price-range .p-vals { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .clear-filters { all: unset; cursor: pointer; font-size: 12.5px; color: var(--accent-2); font-weight: 700; margin-top: 16px; display: inline-block; }
 
+  .data-disclosure {
+    background: var(--accent-2-tint); color: var(--accent-2); border-radius: var(--radius-s);
+    padding: 11px 16px; font-size: 12.5px; line-height: 1.5; margin-bottom: 16px;
+  }
+  .data-disclosure strong { color: var(--text); }
+
   .results-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
   .results-count { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
   .results-count .n { color: var(--accent); }
@@ -318,6 +324,10 @@
   .badge.info { background: var(--accent-2-tint); color: var(--accent-2); }
   .badge.warn { background: var(--warn-bg); color: var(--warn); }
   .badge.rating { background: var(--paper-sunken); color: var(--text); font-weight: 700; }
+
+  .source-line { font-size: 11.5px; color: var(--accent-2); font-weight: 600; text-decoration: none; }
+  .source-line:hover { text-decoration: underline; }
+  .source-date { font-size: 11.5px; color: var(--faint); }
 
   .ticket-price {
     border-left: 1.5px dashed var(--line-strong);
@@ -540,7 +550,7 @@
     </button>
     <nav class="top-nav">
       <button type="button" class="nav-link" id="navBookings">Mis reservas <span class="nav-badge" id="bookingsBadge" style="display:none;">0</span></button>
-      <span class="demo-pill">Prototipo · datos de muestra</span>
+      <span class="demo-pill">Prototipo · precios investigados manualmente</span>
     </nav>
   </div>
 </header>
@@ -623,8 +633,8 @@
       <div class="f-group">
         <div class="f-title">Precio por día (S/)</div>
         <div class="price-range">
-          <input type="range" id="priceMax" min="60" max="400" step="5" value="400">
-          <div class="p-vals"><span>S/ 60</span><span id="priceMaxLabel">hasta S/ 400</span></div>
+          <input type="range" id="priceMax" min="60" max="700" step="10" value="700">
+          <div class="p-vals"><span>S/ 60</span><span id="priceMaxLabel">hasta S/ 700</span></div>
         </div>
       </div>
 
@@ -655,6 +665,9 @@
     </aside>
 
     <section class="results">
+      <div class="data-disclosure">
+        <strong>Datos investigados manualmente</strong> el 9 ago 2026 en las páginas públicas de Budget Perú, Alkilautos, Dionisio Rent a Car y Perú Rent a Car — no es una tarifa en vivo. Cada auto enlaza a su fuente; confirma precio, seguro y cancelación con la empresa antes de reservar.
+      </div>
       <div class="results-head">
         <div>
           <div class="results-count"><span class="n" id="resultCount">0</span> autos disponibles</div>
@@ -690,31 +703,39 @@
 </div>
 
 <footer class="note">
-  Prototipo con datos de muestra — precios, empresas y disponibilidad son ilustrativos y no reflejan tarifas reales. Construido para mostrar cómo podría verse el comparador.
+  Precios investigados manualmente en las páginas públicas de cada empresa el 9 de agosto de 2026 — no son una tarifa en tiempo real ni una cotización garantizada. Verifica siempre el precio final, el seguro y la política de cancelación directamente con la empresa antes de reservar. Precios en dólares convertidos a soles al tipo de cambio referencial SUNAT del 6 de agosto de 2026 (S/ 3.39). El proceso de reserva de este sitio sigue siendo una simulación — no se realiza ningún cargo real.
 </footer>
 
 <script>
 (function () {
   var MONOGRAM_COLORS = ['#B97A1E', '#1C6E76', '#5A7BA6', '#8C5AA6', '#4E8C5A', '#A65A5A'];
 
+  /* Precios investigados manualmente en fuentes públicas el 9 ago 2026. No son tarifas en vivo:
+     verifica siempre con la empresa antes de reservar. Modelos marcados "o similar" reflejan
+     tarifas por categoría (así vende la industria); los modelos con nombre propio (JAC Refine,
+     Ford Territory/Explorer, Mercedes E200, BMW 520i, Corolla/Yaris) están listados por nombre
+     en la fuente. Precios en USD convertidos a soles al tipo de cambio SUNAT del 6 ago 2026 (S/3.39). */
   var CARS = [
-    { company: 'Localiza Rent a Car', model: 'Chevrolet Onix', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 89, rating: 4.6, reviews: 312, insurance: true, freeCancel: true, gps: false, locations: ['Aeropuerto Jorge Chávez','Miraflores','San Isidro'], note: 'A 5 min del aeropuerto' },
-    { company: 'América Rent a Car', model: 'Hyundai Accent', type: 'Económico', trans: 'Manual', seats: 5, bags: 1, price: 69, rating: 4.3, reviews: 188, insurance: false, freeCancel: true, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco','Surco'], note: 'Entrega gratuita en tu hotel' },
-    { company: 'Green Car Rental Perú', model: 'Toyota Yaris', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 82, rating: 4.5, reviews: 256, insurance: true, freeCancel: true, gps: false, locations: ['Miraflores','San Isidro','San Borja'], note: 'Seguro full incluido' },
-    { company: 'Budget Perú', model: 'Toyota Corolla', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 118, rating: 4.4, reviews: 201, insurance: true, freeCancel: false, gps: true, locations: ['Aeropuerto Jorge Chávez','San Isidro'], note: 'Kilometraje libre' },
-    { company: 'Solvcar', model: 'Kia Rio', type: 'Compacto', trans: 'Manual', seats: 5, bags: 2, price: 75, rating: 4.1, reviews: 97, insurance: false, freeCancel: false, gps: false, locations: ['Surco','San Borja'], note: 'Tarifa semanal con descuento' },
-    { company: 'Dollar Rent a Car', model: 'Hyundai Tucson', type: 'SUV', trans: 'Automática', seats: 5, bags: 4, price: 168, rating: 4.6, reviews: 143, insurance: true, freeCancel: true, gps: true, locations: ['Aeropuerto Jorge Chávez','Miraflores'], note: 'GPS y silla para bebé disponibles' },
-    { company: 'Diex Rent a Car', model: 'Toyota RAV4', type: 'SUV', trans: 'Automática', seats: 5, bags: 4, price: 175, rating: 4.2, reviews: 76, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','San Isidro'], note: 'Ideal para Costa Verde y playas al sur' },
-    { company: 'Aventura 4x4 Rent', model: 'Toyota Hilux', type: 'Camioneta 4x4', trans: 'Manual', seats: 5, bags: 4, price: 245, rating: 4.7, reviews: 164, insurance: true, freeCancel: true, gps: true, locations: ['Aeropuerto Jorge Chávez','Barranco'], note: 'Preparada para carretera y sierra' },
-    { company: 'Peru Car Rental', model: 'Kia Carnival', type: 'Van/Minivan', trans: 'Automática', seats: 7, bags: 6, price: 210, rating: 4.5, reviews: 88, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','San Borja'], note: 'Ideal para grupos y familias' },
-    { company: 'Thrifty Perú', model: 'Toyota Land Cruiser', type: 'Lujo', trans: 'Automática', seats: 5, bags: 4, price: 385, rating: 4.8, reviews: 54, insurance: true, freeCancel: true, gps: true, locations: ['Miraflores','San Isidro'], note: 'Chofer opcional disponible' },
-    { company: 'América Rent a Car', model: 'Chevrolet Spark', type: 'Económico', trans: 'Manual', seats: 4, bags: 1, price: 62, rating: 4.0, reviews: 145, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], note: 'La opción más económica' },
-    { company: 'Localiza Rent a Car', model: 'Nissan Versa', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 105, rating: 4.4, reviews: 179, insurance: true, freeCancel: true, gps: false, locations: ['Aeropuerto Jorge Chávez','Miraflores','Surco'], note: 'Cancelación gratuita hasta 24h antes' }
+    { company: 'Budget Perú', model: 'Categoría Económica', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 88, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco'], source: 'https://www.budgetperu.com/en/', sourceLabel: 'budgetperu.com', note: 'Ej. Chevrolet Aveo o similar · tarifa oficial publicada por Budget Perú' },
+    { company: 'Budget Perú', model: 'Categoría SUV', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 180, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco'], source: 'https://www.budgetperu.com/en/', sourceLabel: 'budgetperu.com', note: 'SUV compacta o similar, hasta 7 pasajeros · tarifa oficial publicada por Budget Perú' },
+    { company: 'Alkilautos · red de proveedores', model: 'Suzuki Swift o similar', type: 'Económico', trans: 'Manual', seats: 4, bags: 1, price: 83, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Alkilautos · red de proveedores', model: 'Toyota Yaris o similar', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 105, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Alkilautos · red de proveedores', model: 'Toyota Corolla o similar', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 116, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Alkilautos · red de proveedores', model: 'Nissan Kicks o similar', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 126, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Dionisio Rent a Car', model: 'Categoría Compacta', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 80, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', note: 'Precio "desde" · rango informado S/80–150 según modelo · operador local en San Borja' },
+    { company: 'Dionisio Rent a Car', model: 'Categoría Sedán intermedio', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 120, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', note: 'Precio "desde" · rango informado S/120–250 según modelo · operador local en San Borja' },
+    { company: 'Dionisio Rent a Car', model: 'Categoría SUV / Camioneta 4x4', type: 'Camioneta 4x4', trans: 'Manual', seats: 5, bags: 4, price: 180, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', note: 'Precio "desde" · rango informado S/180–350 según modelo · operador local en San Borja' },
+    { company: 'Perú Rent a Car', model: 'Toyota Corolla / Yaris (nivel de entrada)', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 102, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — desde $30/día "con seguro incluido" según su web (≈S/102)' },
+    { company: 'Perú Rent a Car', model: 'JAC Refine 2023/2025', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 238, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $70/día según su web (≈S/238)' },
+    { company: 'Perú Rent a Car', model: 'Ford Territory', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 255, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $75/día según su web (≈S/255)' },
+    { company: 'Perú Rent a Car', model: 'Ford Explorer 2025', type: 'SUV', trans: 'Automática', seats: 7, bags: 4, price: 442, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $130/día según su web (≈S/442)' },
+    { company: 'Perú Rent a Car', model: 'Mercedes-Benz E200', type: 'Lujo', trans: 'Automática', seats: 5, bags: 3, price: 595, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $175/día según su web (≈S/595)' },
+    { company: 'Perú Rent a Car', model: 'BMW 520i', type: 'Lujo', trans: 'Automática', seats: 5, bags: 3, price: 680, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $200/día según su web (≈S/680)' }
   ];
 
   CARS.forEach(function (c, i) { c.id = i; });
 
-  var TYPES = ['Económico','Compacto','Intermedio','SUV','Camioneta 4x4','Van/Minivan','Lujo'];
+  var TYPES = ['Económico','Compacto','Intermedio','SUV','Camioneta 4x4','Lujo'];
   var COMPANIES = Array.from(new Set(CARS.map(function (c) { return c.company; })));
 
   var companyColor = {};
@@ -723,7 +744,7 @@
   var state = {
     typeQuery: '',
     activeTypeChip: null,
-    priceMax: 400,
+    priceMax: 700,
     trans: { 'Automática': true, 'Manual': true },
     companies: {},
     extraInsurance: false,
@@ -742,6 +763,10 @@
   function fmtShort(d) { return d.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }).replace('.', ''); }
   function daysBetween(a, b) { return Math.max(1, Math.round((b - a) / 86400000)); }
   function money(n) { return n.toLocaleString('es-PE'); }
+  function companyInitials(name) {
+    var letters = name.match(/[A-Za-zÀ-ÿ]+/g) || [];
+    return letters.slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('');
+  }
 
   /* ---------- render type chips + datalist + filter checkboxes ---------- */
   var typeChipsEl = document.getElementById('typeChips');
@@ -818,8 +843,8 @@
     document.querySelectorAll('.typeFilter, .transFilter, .companyFilter').forEach(function (cb) { cb.checked = true; });
     state.trans = { 'Automática': true, 'Manual': true };
     COMPANIES.forEach(function (c) { state.companies[c] = true; });
-    state.priceMax = 400; document.getElementById('priceMax').value = 400;
-    document.getElementById('priceMaxLabel').textContent = 'hasta S/ 400';
+    state.priceMax = 700; document.getElementById('priceMax').value = 700;
+    document.getElementById('priceMaxLabel').textContent = 'hasta S/ 700';
     state.extraInsurance = state.extraCancel = state.extraGps = false;
     document.getElementById('extraInsurance').checked = false;
     document.getElementById('extraCancel').checked = false;
@@ -975,8 +1000,8 @@
     var arr = list.slice();
     if (state.sort === 'price-asc') arr.sort(function (a, b) { return a.price - b.price; });
     else if (state.sort === 'price-desc') arr.sort(function (a, b) { return b.price - a.price; });
-    else if (state.sort === 'rating') arr.sort(function (a, b) { return b.rating - a.rating; });
-    else arr.sort(function (a, b) { return (b.rating * 10 - b.price / 30) - (a.rating * 10 - a.price / 30); });
+    else if (state.sort === 'rating') arr.sort(function (a, b) { return (b.rating || 0) - (a.rating || 0); });
+    else arr.sort(function (a, b) { return ((b.rating || 0) * 10 - b.price / 30) - ((a.rating || 0) * 10 - a.price / 30); });
     return arr;
   }
 
@@ -1010,9 +1035,10 @@
       if (car.freeCancel) badges += '<span class="badge good">Cancelación gratuita</span>';
       if (car.insurance) badges += '<span class="badge info">Seguro incluido</span>';
       if (car.gps) badges += '<span class="badge info">GPS incluido</span>';
-      if (!car.freeCancel && !car.insurance) badges += '<span class="badge warn">Sin seguro incluido</span>';
+      if (!car.insurance) badges += '<span class="badge warn">Confirmar seguro con la empresa</span>';
 
-      var initials = car.company.split(' ').map(function (w) { return w[0]; }).slice(0, 2).join('');
+      var initials = companyInitials(car.company);
+      var ratingHtml = car.rating != null ? '<span class="badge rating">&#9733; ' + car.rating.toFixed(1) + ' (' + car.reviews + ')</span>' : '';
 
       card.innerHTML =
         '<div class="ticket-main">' +
@@ -1025,10 +1051,11 @@
               '<span class="spec">' + car.trans + '</span>' +
               '<span class="spec">' + car.seats + ' asientos</span>' +
               '<span class="spec">' + car.bags + ' maletas</span>' +
-              '<span class="badge rating">&#9733; ' + car.rating.toFixed(1) + ' (' + car.reviews + ')</span>' +
+              ratingHtml +
             '</div>' +
             '<div class="badge-row">' + badges + '</div>' +
             '<div style="margin-top:8px; font-size:12.5px; color:var(--muted);">' + car.note + '</div>' +
+            '<a class="source-line" href="' + car.source + '" target="_blank" rel="noopener noreferrer">Fuente: ' + car.sourceLabel + ' &#8599;</a> <span class="source-date">· precio observado el 9 ago 2026</span>' +
             '<label class="compare-ck-row"><input type="checkbox" class="compareCk" data-id="' + car.id + '"> Comparar este auto</label>' +
           '</div>' +
         '</div>' +
@@ -1109,7 +1136,7 @@
       list.forEach(function (b) {
         var pdate = new Date(b.pickupDate), rdate = new Date(b.retDate);
         var cancelled = b.status === 'cancelled';
-        var initials = b.company.split(' ').map(function (w) { return w[0]; }).slice(0, 2).join('');
+        var initials = companyInitials(b.company);
         var color = companyColor[b.company] || '#7A8A8F';
         html += '<div class="ticket' + (cancelled ? ' ticket-cancelled' : '') + '">' +
           '<div class="ticket-main">' +
@@ -1159,9 +1186,9 @@
   document.getElementById('navHome').addEventListener('click', function () { showView('search'); });
 
   function mileagePolicy(car) {
-    return (car.type === 'Lujo' || car.type === 'Camioneta 4x4')
-      ? '200 km/día incluidos · S/1.50 por km adicional'
-      : 'Kilometraje libre, sin límite';
+    return car.mileageUnlimited
+      ? 'Kilometraje libre, sin límite (confirmado por el proveedor)'
+      : 'No confirmado — consulta el kilometraje incluido con la empresa';
   }
 
   function checkoutTotals() {
@@ -1189,7 +1216,7 @@
     var pickupLoc = document.getElementById('pickupLoc').value;
     var dropoffVisible = document.getElementById('dropoffLoc').style.display !== 'none';
     var dropLoc = dropoffVisible ? document.getElementById('dropoffLoc').value : pickupLoc;
-    var initials = car.company.split(' ').map(function (w) { return w[0]; }).slice(0, 2).join('');
+    var initials = companyInitials(car.company);
 
     var extrasHtml = EXTRA_DEFS.map(function (ex) {
       if (ex.skipIf && ex.skipIf(car)) {
@@ -1224,9 +1251,9 @@
             '</div>' +
             '<div class="policy-list">' +
               '<div class="policy-row"><b>Kilometraje</b>' + mileagePolicy(car) + '</div>' +
-              '<div class="policy-row"><b>Combustible</b>Devuélvelo con el mismo nivel con el que lo recibiste</div>' +
-              '<div class="policy-row"><b>Cancelación</b>' + (car.freeCancel ? 'Gratuita hasta 24h antes del recojo' : 'Cargo de S/ 50 por cancelación') + '</div>' +
-              '<div class="policy-row"><b>Depósito</b>Garantía retenida en tarjeta: S/ 800 (se libera al devolver el auto)</div>' +
+              '<div class="policy-row"><b>Combustible</b>Política estándar de la industria: devuelve el auto con el mismo nivel (confirma con la empresa)</div>' +
+              '<div class="policy-row"><b>Cancelación</b>' + (car.freeCancel ? 'Cancelación gratuita según la empresa — confirma el plazo exacto' : 'No confirmado — consulta la política de cancelación antes de reservar') + '</div>' +
+              '<div class="policy-row"><b>Depósito</b>No confirmado — el monto de la garantía varía según la empresa y el vehículo</div>' +
               '<div class="policy-row"><b>Edad mínima</b>' + document.getElementById('driverAge').value + '</div>' +
             '</div>' +
           '</div>' +
@@ -1420,11 +1447,12 @@
   function renderCompareView() {
     var cars = compareList.map(carById);
     var minPrice = Math.min.apply(null, cars.map(function (c) { return c.price; }));
-    var maxRating = Math.max.apply(null, cars.map(function (c) { return c.rating; }));
+    var ratedCars = cars.filter(function (c) { return c.rating != null; });
+    var maxRating = ratedCars.length ? Math.max.apply(null, ratedCars.map(function (c) { return c.rating; })) : null;
     var days = state.ret ? daysBetween(state.pickup, state.ret) : 3;
 
     function headCell(car) {
-      var initials = car.company.split(' ').map(function (w) { return w[0]; }).slice(0, 2).join('');
+      var initials = companyInitials(car.company);
       return '<th><div class="compare-col-head">' +
         '<div class="cch-top">' +
           '<div class="monogram" style="width:38px;height:38px;font-size:14px;background:' + companyColor[car.company] + '22; color:' + companyColor[car.company] + ';">' + initials + '</div>' +
@@ -1449,7 +1477,9 @@
       return '<tr><td class="row-label">' + label + '</td>' + cars.map(function (c) { return '<td>' + fn(c) + '</td>'; }).join('') + '</tr>';
     }
     function ratingRow() {
+      if (!ratedCars.length) return '';
       return '<tr><td class="row-label">Calificación</td>' + cars.map(function (c) {
+        if (c.rating == null) return '<td class="compare-no">No disponible</td>';
         var best = c.rating === maxRating;
         return '<td>&#9733; ' + c.rating.toFixed(1) + ' (' + c.reviews + ')' + (best && cars.length > 1 ? '<span class="compare-best-tag">Mejor calificado</span>' : '') + '</td>';
       }).join('') + '</tr>';
@@ -1469,9 +1499,9 @@
       simpleRow('Asientos', function (c) { return c.seats; }) +
       simpleRow('Maletas', function (c) { return c.bags; }) +
       ratingRow() +
-      simpleRow('Seguro incluido', function (c) { return yesNo(c.insurance); }) +
-      simpleRow('Cancelación gratuita', function (c) { return yesNo(c.freeCancel); }) +
-      simpleRow('GPS incluido', function (c) { return yesNo(c.gps); }) +
+      simpleRow('Seguro incluido (confirmado)', function (c) { return yesNo(c.insurance); }) +
+      simpleRow('Cancelación gratuita (confirmado)', function (c) { return yesNo(c.freeCancel); }) +
+      simpleRow('GPS incluido (confirmado)', function (c) { return yesNo(c.gps); }) +
       simpleRow('Kilometraje', mileagePolicy) +
       '<tr>' + '<td></td>' + cars.map(function (c) {
         return '<td class="compare-select-cell"><button type="button" data-id="' + c.id + '">Seleccionar</button></td>';
