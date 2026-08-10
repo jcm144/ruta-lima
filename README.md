@@ -3,7 +3,7 @@
 A single-file, client-side prototype for comparing rental cars in Lima by
 location, dates, price, and car model.
 
-**Live:** _paste your Netlify/Vercel/Pages URL here_
+**Live:** https://rutalima.netlify.app/
 
 ## What's in it
 
