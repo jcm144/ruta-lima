@@ -631,6 +631,12 @@
       <h3>Filtrar resultados</h3>
 
       <div class="f-group">
+        <div class="f-title">Ubicación de recojo</div>
+        <div class="f-row"><label class="f-label"><input type="checkbox" id="strictLocation"> Solo autos con oficina en mi punto de recojo</label></div>
+        <div class="sub" style="margin-top:2px;">Desactivado: se muestran todos los autos, y se indica dónde tiene oficina cada empresa.</div>
+      </div>
+
+      <div class="f-group">
         <div class="f-title">Precio por día (S/)</div>
         <div class="price-range">
           <input type="range" id="priceMax" min="60" max="700" step="10" value="700">
@@ -744,6 +750,7 @@
   var state = {
     typeQuery: '',
     activeTypeChip: null,
+    strictLocation: false,
     priceMax: 700,
     trans: { 'Automática': true, 'Manual': true },
     companies: {},
@@ -831,6 +838,9 @@
   document.getElementById('extraInsurance').addEventListener('change', function (e) { state.extraInsurance = e.target.checked; render(); });
   document.getElementById('extraCancel').addEventListener('change', function (e) { state.extraCancel = e.target.checked; render(); });
   document.getElementById('extraGps').addEventListener('change', function (e) { state.extraGps = e.target.checked; render(); });
+  document.getElementById('strictLocation').addEventListener('change', function (e) { state.strictLocation = e.target.checked; render(); });
+  document.getElementById('pickupLoc').addEventListener('change', render);
+  document.getElementById('dropoffLoc').addEventListener('change', render);
   document.getElementById('priceMax').addEventListener('input', function (e) {
     state.priceMax = Number(e.target.value);
     document.getElementById('priceMaxLabel').textContent = 'hasta S/ ' + state.priceMax;
@@ -849,6 +859,8 @@
     document.getElementById('extraInsurance').checked = false;
     document.getElementById('extraCancel').checked = false;
     document.getElementById('extraGps').checked = false;
+    state.strictLocation = false;
+    document.getElementById('strictLocation').checked = false;
     state.typeQuery = ''; state.activeTypeChip = null;
     document.getElementById('typeInput').value = '';
     renderChips(); render();
@@ -906,7 +918,8 @@
       if (sameDay(cellDate, state.ret)) btn.classList.add('end');
       if (cellDate > state.pickup && cellDate < state.ret) btn.classList.add('in-range');
       (function (cd) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
           if (state.pickingStart) {
             state.pickup = cd; state.ret = null; state.pickingStart = false;
           } else {
@@ -930,16 +943,17 @@
     calMonths.appendChild(buildMonth(m2));
 
     var nav1 = document.createElement('button'); nav1.className = 'cal-nav'; nav1.innerHTML = '&#8249;'; nav1.type = 'button';
-    nav1.addEventListener('click', function () { state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() - 1, 1); renderCalendar(); });
+    nav1.addEventListener('click', function (e) { e.stopPropagation(); state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() - 1, 1); renderCalendar(); });
     calMonths.children[0].querySelector('.cal-month-head').insertBefore(nav1, calMonths.children[0].querySelector('.m-label'));
 
     var nav2 = document.createElement('button'); nav2.className = 'cal-nav'; nav2.innerHTML = '&#8250;'; nav2.type = 'button';
-    nav2.addEventListener('click', function () { state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() + 1, 1); renderCalendar(); });
+    nav2.addEventListener('click', function (e) { e.stopPropagation(); state.calCursor = new Date(state.calCursor.getFullYear(), state.calCursor.getMonth() + 1, 1); renderCalendar(); });
     calMonths.children[1].querySelector('.cal-month-head').appendChild(nav2);
   }
 
   document.querySelectorAll('.cal-quick button').forEach(function (b) {
-    b.addEventListener('click', function () {
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
       var n = Number(b.getAttribute('data-days'));
       state.ret = addDays(state.pickup, n);
       state.pickingStart = true;
@@ -980,6 +994,7 @@
   }
 
   function matches(car) {
+    if (state.strictLocation && car.locations.indexOf(document.getElementById('pickupLoc').value) === -1) return false;
     if (car.price > state.priceMax) return false;
     if (!state.trans[car.trans]) return false;
     if (!state.companies[car.company]) return false;
@@ -1020,7 +1035,7 @@
     if (filtered.length === 0) {
       var empty = document.createElement('div');
       empty.className = 'empty-state';
-      empty.innerHTML = '<div class="em-title">No hay autos con estos filtros</div><div>Prueba ampliando el rango de precio o quitando alguna empresa.</div><button type="button" id="emptyReset">Limpiar filtros</button>';
+      empty.innerHTML = '<div class="em-title">No hay autos con estos filtros</div><div>Prueba ampliando el rango de precio, quitando alguna empresa, o desactivando "Solo autos con oficina en mi punto de recojo".</div><button type="button" id="emptyReset">Limpiar filtros</button>';
       resultsList.appendChild(empty);
       document.getElementById('emptyReset').addEventListener('click', function () { document.getElementById('clearFilters').click(); });
       return;
@@ -1031,7 +1046,11 @@
       var card = document.createElement('div');
       card.className = 'ticket';
 
+      var atPickupLoc = car.locations.indexOf(pickupLoc) !== -1;
       var badges = '';
+      badges += atPickupLoc
+        ? '<span class="badge good">Oficina en ' + pickupLoc + '</span>'
+        : '<span class="badge info">Oficina en ' + car.locations.join(' / ') + ' — consulta entrega a tu zona</span>';
       if (car.freeCancel) badges += '<span class="badge good">Cancelación gratuita</span>';
       if (car.insurance) badges += '<span class="badge info">Seguro incluido</span>';
       if (car.gps) badges += '<span class="badge info">GPS incluido</span>';
