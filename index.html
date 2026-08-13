@@ -671,8 +671,8 @@
     </aside>
 
     <section class="results">
-      <div class="data-disclosure">
-        <strong>Datos investigados manualmente</strong> el 9 ago 2026 en las páginas públicas de Budget Perú, Alkilautos, Dionisio Rent a Car y Perú Rent a Car — no es una tarifa en vivo. Cada auto enlaza a su fuente; confirma precio, seguro y cancelación con la empresa antes de reservar.
+      <div class="data-disclosure" id="dataDisclosure">
+        <strong>Cargando precios en vivo…</strong> mientras tanto se muestra el último precio guardado. Cada auto enlaza a su fuente; confirma precio, seguro y cancelación con la empresa antes de reservar.
       </div>
       <div class="results-head">
         <div>
@@ -716,30 +716,34 @@
 (function () {
   var MONOGRAM_COLORS = ['#B97A1E', '#1C6E76', '#5A7BA6', '#8C5AA6', '#4E8C5A', '#A65A5A'];
 
-  /* Precios investigados manualmente en fuentes públicas el 9 ago 2026. No son tarifas en vivo:
-     verifica siempre con la empresa antes de reservar. Modelos marcados "o similar" reflejan
-     tarifas por categoría (así vende la industria); los modelos con nombre propio (JAC Refine,
-     Ford Territory/Explorer, Mercedes E200, BMW 520i, Corolla/Yaris) están listados por nombre
-     en la fuente. Precios en USD convertidos a soles al tipo de cambio SUNAT del 6 ago 2026 (S/3.39). */
+  /* This embedded array is the OFFLINE FALLBACK only, used if the live fetch (below) fails.
+     Values match the last successful automatic refresh. Real freshness comes from
+     data/cars.json, fetched at runtime from GitHub and refreshed on a schedule by
+     scripts/refresh-prices.js — see REMOTE_DATA_URL. Alkilautos is intentionally excluded
+     from auto-refresh (see script comments) and stays a manually-dated snapshot. */
   var CARS = [
-    { company: 'Budget Perú', model: 'Categoría Económica', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 88, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco'], source: 'https://www.budgetperu.com/en/', sourceLabel: 'budgetperu.com', note: 'Ej. Chevrolet Aveo o similar · tarifa oficial publicada por Budget Perú' },
-    { company: 'Budget Perú', model: 'Categoría SUV', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 180, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco'], source: 'https://www.budgetperu.com/en/', sourceLabel: 'budgetperu.com', note: 'SUV compacta o similar, hasta 7 pasajeros · tarifa oficial publicada por Budget Perú' },
-    { company: 'Alkilautos · red de proveedores', model: 'Suzuki Swift o similar', type: 'Económico', trans: 'Manual', seats: 4, bags: 1, price: 83, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
-    { company: 'Alkilautos · red de proveedores', model: 'Toyota Yaris o similar', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 105, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
-    { company: 'Alkilautos · red de proveedores', model: 'Toyota Corolla o similar', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 116, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
-    { company: 'Alkilautos · red de proveedores', model: 'Nissan Kicks o similar', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 126, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
-    { company: 'Dionisio Rent a Car', model: 'Categoría Compacta', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 80, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', note: 'Precio "desde" · rango informado S/80–150 según modelo · operador local en San Borja' },
-    { company: 'Dionisio Rent a Car', model: 'Categoría Sedán intermedio', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 120, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', note: 'Precio "desde" · rango informado S/120–250 según modelo · operador local en San Borja' },
-    { company: 'Dionisio Rent a Car', model: 'Categoría SUV / Camioneta 4x4', type: 'Camioneta 4x4', trans: 'Manual', seats: 5, bags: 4, price: 180, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', note: 'Precio "desde" · rango informado S/180–350 según modelo · operador local en San Borja' },
-    { company: 'Perú Rent a Car', model: 'Toyota Corolla / Yaris (nivel de entrada)', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 102, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — desde $30/día "con seguro incluido" según su web (≈S/102)' },
-    { company: 'Perú Rent a Car', model: 'JAC Refine 2023/2025', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 238, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $70/día según su web (≈S/238)' },
-    { company: 'Perú Rent a Car', model: 'Ford Territory', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 255, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $75/día según su web (≈S/255)' },
-    { company: 'Perú Rent a Car', model: 'Ford Explorer 2025', type: 'SUV', trans: 'Automática', seats: 7, bags: 4, price: 442, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $130/día según su web (≈S/442)' },
-    { company: 'Perú Rent a Car', model: 'Mercedes-Benz E200', type: 'Lujo', trans: 'Automática', seats: 5, bags: 3, price: 595, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $175/día según su web (≈S/595)' },
-    { company: 'Perú Rent a Car', model: 'BMW 520i', type: 'Lujo', trans: 'Automática', seats: 5, bags: 3, price: 680, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/', sourceLabel: 'perurentacar.com', note: 'Operador local, Surco — $200/día según su web (≈S/680)' }
+    { company: 'Budget Perú', model: 'Categoría Económica', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 88, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco'], source: 'https://www.budgetperu.com/en/', sourceLabel: 'budgetperu.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Ej. Chevrolet Aveo o similar · tarifa oficial publicada por Budget Perú' },
+    { company: 'Budget Perú', model: 'Categoría SUV', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 180, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez','Barranco'], source: 'https://www.budgetperu.com/en/', sourceLabel: 'budgetperu.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'SUV compacta o similar, hasta 7 pasajeros · tarifa oficial publicada por Budget Perú' },
+    { company: 'Alkilautos · red de proveedores', model: 'Suzuki Swift o similar', type: 'Económico', trans: 'Manual', seats: 4, bags: 1, price: 83, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', priceAsOf: '2026-08-09', priceLive: false, note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Alkilautos · red de proveedores', model: 'Toyota Yaris o similar', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 105, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', priceAsOf: '2026-08-09', priceLive: false, note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Alkilautos · red de proveedores', model: 'Toyota Corolla o similar', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 116, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', priceAsOf: '2026-08-09', priceLive: false, note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Alkilautos · red de proveedores', model: 'Nissan Kicks o similar', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 126, rating: null, reviews: null, insurance: true, freeCancel: false, gps: false, locations: ['Aeropuerto Jorge Chávez'], source: 'https://alkilautos.com/en/car-rental-lima/', sourceLabel: 'alkilautos.com', priceAsOf: '2026-08-09', priceLive: false, note: 'Red que agrega Alamo, National, Enterprise, Budget, GreenMotion y América — km libre y seguro básico incluidos', mileageUnlimited: true },
+    { company: 'Dionisio Rent a Car', model: 'Categoría Compacta', type: 'Compacto', trans: 'Automática', seats: 5, bags: 2, price: 80, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Precio "desde" · operador local en San Borja · rango informado S/80–150 según modelo' },
+    { company: 'Dionisio Rent a Car', model: 'Categoría Sedán intermedio', type: 'Intermedio', trans: 'Automática', seats: 5, bags: 3, price: 120, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Precio "desde" · operador local en San Borja · rango informado S/120–250 según modelo' },
+    { company: 'Dionisio Rent a Car', model: 'Categoría SUV / Camioneta 4x4', type: 'Camioneta 4x4', trans: 'Manual', seats: 5, bags: 4, price: 180, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['San Borja'], source: 'https://dionisiorentacar.com/blogs/precios-de-alquiler-de-autos-en-lima/', sourceLabel: 'dionisiorentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Precio "desde" · operador local en San Borja · rango informado S/180–350 según modelo' },
+    { company: 'Perú Rent a Car', model: 'Toyota Corolla', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 185, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/toyota-corolla/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $55.00/día según su web' },
+    { company: 'Perú Rent a Car', model: 'Toyota Yaris', type: 'Económico', trans: 'Automática', seats: 5, bags: 2, price: 135, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/toyota-yaris/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $40.00/día según su web' },
+    { company: 'Perú Rent a Car', model: 'JAC Refine 2023', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 236, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/jac-refine-2023-2/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $70.00/día según su web' },
+    { company: 'Perú Rent a Car', model: 'Ford Territory', type: 'SUV', trans: 'Automática', seats: 5, bags: 3, price: 253, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/ford-territory/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $75.00/día según su web' },
+    { company: 'Perú Rent a Car', model: 'Ford Explorer 2025', type: 'SUV', trans: 'Automática', seats: 7, bags: 4, price: 438, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/ford-explorer-2025/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $130.00/día según su web' },
+    { company: 'Perú Rent a Car', model: 'Mercedes-Benz E200', type: 'Lujo', trans: 'Automática', seats: 5, bags: 3, price: 607, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/mercedes-benz-e200/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $180.00/día según su web' },
+    { company: 'Perú Rent a Car', model: 'BMW 520i', type: 'Lujo', trans: 'Automática', seats: 5, bags: 3, price: 674, rating: null, reviews: null, insurance: false, freeCancel: false, gps: false, locations: ['Surco'], source: 'https://www.perurentacar.com/en/product/bmw-520i/', sourceLabel: 'perurentacar.com', priceAsOf: '2026-08-13T18:41:57.832Z', priceLive: false, note: 'Operador local, Surco · $200.00/día según su web' }
   ];
 
   CARS.forEach(function (c, i) { c.id = i; });
+
+  var REMOTE_DATA_URL = 'https://raw.githubusercontent.com/jcm144/ruta-lima/master/data/cars.json';
+  var remoteDataStatus = { loaded: false, generatedAt: null, error: null };
 
   var TYPES = ['Económico','Compacto','Intermedio','SUV','Camioneta 4x4','Lujo'];
   var COMPANIES = Array.from(new Set(CARS.map(function (c) { return c.company; })));
@@ -773,6 +777,15 @@
   function companyInitials(name) {
     var letters = name.match(/[A-Za-zÀ-ÿ]+/g) || [];
     return letters.slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('');
+  }
+  function fmtPriceAsOf(car) {
+    var d = new Date(car.priceAsOf);
+    var dateStr = d.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '');
+    if (car.priceLive) {
+      var timeStr = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      return 'actualizado automáticamente el ' + dateStr + ', ' + timeStr;
+    }
+    return 'verificado manualmente el ' + dateStr;
   }
 
   /* ---------- render type chips + datalist + filter checkboxes ---------- */
@@ -1074,7 +1087,7 @@
             '</div>' +
             '<div class="badge-row">' + badges + '</div>' +
             '<div style="margin-top:8px; font-size:12.5px; color:var(--muted);">' + car.note + '</div>' +
-            '<a class="source-line" href="' + car.source + '" target="_blank" rel="noopener noreferrer">Fuente: ' + car.sourceLabel + ' &#8599;</a> <span class="source-date">· precio observado el 9 ago 2026</span>' +
+            '<a class="source-line" href="' + car.source + '" target="_blank" rel="noopener noreferrer">Fuente: ' + car.sourceLabel + ' &#8599;</a> <span class="source-date">· ' + fmtPriceAsOf(car) + '</span>' +
             '<label class="compare-ck-row"><input type="checkbox" class="compareCk" data-id="' + car.id + '"> Comparar este auto</label>' +
           '</div>' +
         '</div>' +
@@ -1551,9 +1564,53 @@
     showView('compare');
   });
 
+  /* ---------- live price refresh ---------- */
+  function updateDisclosureBanner() {
+    var el = document.getElementById('dataDisclosure');
+    if (remoteDataStatus.loaded) {
+      var d = new Date(remoteDataStatus.generatedAt);
+      var when = d.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '') +
+        ', ' + d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      el.innerHTML = '<strong>Precios en vivo</strong> — actualizados automáticamente el ' + when +
+        ' desde las páginas y APIs públicas de Budget Perú, Dionisio Rent a Car y Perú Rent a Car. ' +
+        'Alkilautos no se actualiza automáticamente (ver nota en su ficha) y mantiene su última verificación manual. ' +
+        'Cada auto enlaza a su fuente; confirma precio, seguro y cancelación con la empresa antes de reservar.';
+    } else {
+      el.innerHTML = '<strong>' + (remoteDataStatus.error ? 'No se pudo cargar el precio en vivo' : 'Cargando precios en vivo…') +
+        '</strong> — se muestra el último precio guardado. Cada auto enlaza a su fuente; confirma precio, seguro y cancelación con la empresa antes de reservar.';
+    }
+  }
+
+  function refreshCarsFromRemote() {
+    fetch(REMOTE_DATA_URL, { cache: 'no-store' })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(function (data) {
+        var byId = {};
+        (data.cars || []).forEach(function (c) { byId[c.id] = c; });
+        CARS.forEach(function (car) {
+          var fresh = byId[car.id];
+          if (!fresh) return;
+          car.price = fresh.price;
+          car.priceAsOf = fresh.priceAsOf;
+          car.priceLive = fresh.priceLive;
+          car.note = fresh.note;
+        });
+        remoteDataStatus.loaded = true;
+        remoteDataStatus.generatedAt = data.generatedAt;
+        updateDisclosureBanner();
+        render();
+      })
+      .catch(function (err) {
+        remoteDataStatus.error = String(err);
+        updateDisclosureBanner();
+      });
+  }
+
   updateDateField();
   renderChips();
   render();
   updateBookingsBadge();
+  updateDisclosureBanner();
+  refreshCarsFromRemote();
 })();
 </script>
