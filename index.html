@@ -1235,6 +1235,10 @@
   }
 
   function openCheckout(car, days) {
+    if (!state.ret) {
+      state.ret = addDays(state.pickup, days);
+      updateDateField();
+    }
     checkout.car = car;
     checkout.days = days;
     checkout.extras = {};
